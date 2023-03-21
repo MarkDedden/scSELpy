@@ -1,0 +1,14 @@
+# Build
+/dist/
+__pycache__/
+
+#Docs
+/docs/_build
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+
+
+
+

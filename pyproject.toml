@@ -1,0 +1,45 @@
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = [
+    "flit_core >=3.4,<4",
+    "setuptools_scm",
+    'wheel',
+]
+
+[project]
+name = "scselpy"
+authors = [
+  { name="Mark Dedden"},
+]
+description = "A tool to select cells on scanpy-based scRNA-seq analysis pipelines."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "License :: MIT License",
+    "Environment :: Console",
+    "Framework :: Jupyter",
+    "Intended Audience :: Bio-Informaticians",
+    "Natural Language :: English",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
+
+dynamic = ["version"]
+
+
+dependencies = [
+    "scanpy >= 1.6",
+    "anndata>=0.7.6",
+    "numpy>=1.17.0",
+    "matplotlib>=3.4",
+
+]
+
+[tool.setuptools]
+py-modules = ["scselpy"]
+
