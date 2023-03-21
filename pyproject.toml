@@ -16,10 +16,8 @@ description = "A tool to select cells on scanpy-based scRNA-seq analysis pipelin
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
-    "License :: MIT License",
     "Environment :: Console",
     "Framework :: Jupyter",
-    "Intended Audience :: Bio-Informaticians",
     "Natural Language :: English",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",

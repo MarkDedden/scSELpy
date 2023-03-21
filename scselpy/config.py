@@ -1,23 +1,3 @@
-
-"""
-class verbose:
-    def __init__(self,value):
-        self.verbosity_value = value
-    def set_value(self,new_value):
-        self.verbosity_value = new_value
-    def get_value(self):
-        return(self.verbosity_value)
-    
-verbosity = verbose(2)
-
-def set_verbosity(value,verbosity_init_class = verbosity):
-    verbosity.set_value(value)
-    
-def get_verbosity(verbosity_init_class = verbosity):
-    return(verbosity.get_value())
-"""
-
-
 class Verbose(object):
     def __init__(self):
         self._verbosity = 2
