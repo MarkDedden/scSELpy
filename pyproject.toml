@@ -41,3 +41,12 @@ dependencies = [
 [tool.setuptools]
 py-modules = ["scselpy"]
 
+
+
+doc = [
+    "sphinx>=4.4,<5", 
+    "myst-parser",
+    "myst-nb",
+
+]
+
