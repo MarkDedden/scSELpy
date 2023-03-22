@@ -1,1 +1,2 @@
 myst-nb
+sphinx_gallery
