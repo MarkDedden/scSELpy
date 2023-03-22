@@ -8,10 +8,9 @@ project = 'scSELpy'
 copyright = 'Mark Dedden'
 author = 'Mark Dedden'
 
-release = '0.1'
 with open(pwd+"/../../scselpy/version.txt") as f:
 	version = str(f.read())
-
+release = version
 # -- General configuration
 
 extensions = [

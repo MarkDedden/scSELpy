@@ -42,8 +42,7 @@ dependencies = [
 [project.optional-dependencies]
 doc = [
     "sphinx>=4.4,<5", 
-    "myst-parser",
-    "myst-nb",
+    "myst-nb"
 
 ]
 
