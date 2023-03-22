@@ -38,15 +38,17 @@ dependencies = [
 
 ]
 
-[tool.setuptools]
-py-modules = ["scselpy"]
 
-
-
+[project.optional-dependencies]
 doc = [
     "sphinx>=4.4,<5", 
     "myst-parser",
     "myst-nb",
 
 ]
+
+
+[tool.setuptools]
+py-modules = ["scselpy"]
+
 
