@@ -6,7 +6,6 @@ Created on Tue Oct 12 17:55:21 2021
 
 from ..config import settings
 
-
 import numpy as np
 
 import scanpy as sc
@@ -82,44 +81,45 @@ def getXY(cordlist,scat_plot,returnVar,lc,colorline,ls,custom_lines):
     else: #In the other sections, we do not care about the legends. Here we want to calculate the polygons and therefore return the cordinates.
         return([(p[0],p[1]) for p in cordlist])
 
-def on_close(event):
 
-    event.canvas.stop_event_loop()
+def draw_line(Amount_of_inp,scat_plot,returnVar,Mock,lc,colorline,linestyle,printcords,timeout,plot_is_open):
+    class Track_openness:
+        is_open = plot_is_open
+    def on_close(event):
+
+ 
+
+        event.canvas.stop_event_loop()
+        Track_openness.is_open = False
     
+        """
+        This section needs some explaining. When the matplotlib plot is closed by pressing the X/cross in the top corner or by using a key of plt.rcParams["keymap.quit"], ginput stays active for two reasons:
+            1) The matplotlib event loop is not terminated on a close_event.
+            2) As this current draw_line() function is called in a while loop, closing the plot will never have the draw_line() function return None (returning None will break the while loop), therefore after closing the plot, this function and thus also ginput() will be called again, causing an unresponsive program. 
+                Since plt.fignum_exists(plt.gcf().number), a function to check if the plot is still open, will return True even on a closed plot, the only way I could fix it is by defining on_close() as an inner function with Track_openness as an inner class. 
+                Therefore when the plot is closed and the close_event is invoked in the matplotlib interactive backend, Track_opennes.is_open will be set to False. Returning this to the interactive_plot_selecting_cells will lead to breaking of the whileloop. 
+            
+        If this fix is not added to scSELpy, the program becomes unresponsive, which in most cases leads to forcefully ending the entire python session, with the risk of losing all data.
+        To make sure Track_opennes is changed on closing the plot, we link on_close to the canvas using "mpl_connect". 
+        When the plot is closed while running ginput, this on_close() function will be called.
 
-    logger_info('Please only close the plot window by pressing 2x Escape, Enter or right click. Especially if using TkAgg backend.')
+        If the user closes the ginput normally, using key presses or mouse button clicks, the mpl_disconnect() function will be called before the plot is closed and therefore this function will never be called. Also the ginput() function will return None, which is returned by draw_line() aswell, resulting in a break of the while loop and everything concluding nominal.
 
-
-
-        
-    """
-    This section needs some explaining. When the matplotlib plot is closed by pressing the X/cross in the top corner, ginput stays active.
-    Therefore the program becomes unresponsive, which in most cases leads to forcefully ending the entire python session, with the risk of losing all data.
-    To solve this problem, before running ginput, we link this function to the canvas using "mpl_connect". 
-    When the plot is closed while running ginput, this function will be called.
-    As ginput is in a "blocking loop" listening for events (maybe even for infinite time), there is no way to stop it unless we call the stop_event_loop() function.
-    
-    If the user closes the ginput normally, using key presses or mouse button clicks, the mpl_disconnect() function will be called before the plot is closed and therefore this function will never be called.
-    
-    This solution does not work on TkAgg backend, therefore I changed away from using TkAgg by default.
-    """
-    
-
-def ginput_child_process(Amount_of_inp,timeout):
-    return(plt.ginput(Amount_of_inp,mouse_add=MouseButton.LEFT, mouse_pop=MouseButton.MIDDLE, mouse_stop=MouseButton.RIGHT,timeout=timeout))
-
-def draw_line(Amount_of_inp,scat_plot,returnVar,Mock,lc,colorline,linestyle,printcords):
-    
+        """
     ax = plt.gca()
-    if Mock is not None:
+
+    if Mock is not None: #If we passed a mock, we do not want to call ginput. Instead, we just assign the mock to xy.
         xy = Mock
         
     else:
-        cid = returnVar.figure.canvas.mpl_connect('close_event', on_close)
-       
+        cid = returnVar.figure.canvas.mpl_connect('close_event', on_close) #In the event that someone closes the plot, we want to call on_close().
+
         try:
             
-            xy = plt.ginput(Amount_of_inp,mouse_add=MouseButton.LEFT, mouse_pop=MouseButton.MIDDLE, mouse_stop=MouseButton.RIGHT,timeout=60)
+
+
+            xy = plt.ginput(n=Amount_of_inp,mouse_add=MouseButton.LEFT, mouse_pop=MouseButton.MIDDLE, mouse_stop=MouseButton.RIGHT,timeout=timeout) #matplotlib.ginput() is responsible for recording the user input. Each click is stored in a tuple as (x,y). All coordinates for a single polygon are stored in a list [(x1,y1),(x2,y2)].
+ 
         except Exception as except_error:
             returnVar.figure.canvas.mpl_disconnect(cid)
             logger_info("Drawing of polygon not concluded correctly. Exception: "+str(except_error),warning=True)
@@ -129,8 +129,9 @@ def draw_line(Amount_of_inp,scat_plot,returnVar,Mock,lc,colorline,linestyle,prin
                 logger_info(xy)
         returnVar.figure.canvas.mpl_disconnect(cid)
 
+
     if len(xy) == 0:
-        return(None)
+        return(None,Track_openness.is_open)
 
         
     polygon = getXY(xy,scat_plot,returnVar,lc,colorline,linestyle,None)
@@ -138,9 +139,7 @@ def draw_line(Amount_of_inp,scat_plot,returnVar,Mock,lc,colorline,linestyle,prin
 
 
     
-    return(polygon)
-
-
+    return(polygon,Track_openness.is_open)
     
 def tryPass(inp):
     try:
@@ -206,7 +205,8 @@ def InitiateParamDict():
     
     ParamDict['save'] = [None,[type(None),str],"Saves figure in provided path+filename. If only a filename is provided, will save in \"figures/\"+filename. Does not work the same as in scanpy. <code>scanpy.set_figure_params</code> should still work."]
     #ParamDict['interactive_backend'] = ["Qt5agg" if "win" in sys.platform else "TkAgg",[str],"For the drawing of polygons, an interactive backend will be used. If a default back-end does not work propperly on your computer, you can change it. More information at https://matplotlib.org/stable/users/explain/backends.html"] 
-    ParamDict['interactive_backend'] = ["Qt5agg",[str],"If running scSELpy on Jupyter Notebook, the drawing of polygons requires the use of an interactive backend. If the default back-end does not work propperly on your computer, you can change it. More information at https://matplotlib.org/stable/users/explain/backends.html"]
+    ParamDict['interactive_backend'] = [None if is_notebook() == False else "TkAgg" if "linux" in sys.platform else "Qt5Agg" if "win" in sys.platform else "Qt5Agg" ,[str,type(None)],"Default: None if not running on Jupyter Notebook (In this case, backend will only switch if you specify this parameter). If running on Jupyter: Default on Linux: TkAgg. Default on Windows and OSX: Qt5Agg. Default on rest: Qt5Agg. If running scSELpy on Jupyter Notebook, the drawing of polygons requires the use of an interactive backend. If the default back-end does not work propperly on your computer, you can change it. More information at https://matplotlib.org/stable/users/explain/backends.html"]
+    ParamDict['timeout'] = [60,[float,int],"Amount of seconds until the drawing of the polygons will automatically stop."]
     ParamDict['helpbox'] = [False,[bool],"Before drawing, shows some text that gives instructions for drawing polygons"]
     
     ParamDict['components'] = [None,[type(None),str],""]
@@ -373,36 +373,36 @@ def checks(adata,VarDict,**kwargs):
 # Below, we decide which attribute we will plot, e.g. umap, tsne etc. Based on the "map_attr" arg.
 def set_map_attr(adata,VarDict,**kwargs):
 
-    avail_atr = "\"umap\",\"tsne\",\"pca\" or \"scatter\""
+    avail_atr = "\"umap\",\"tsne\",\"pca\", \"scatter\" or \"embedding\""
     scat_plot = False
-    if VarDict['map_attr'].lower() == "umap": 
-        if VarDict['basis'] not in adata.obsm:
-            
-            raise AttributeError(VarDict['basis'] +" not found in anndata.obsm.")
-        plotattr = sc.pl.umap
-    elif VarDict['map_attr'].lower() == "tsne": 
-        if VarDict['basis']  not in adata.obsm:
-            raise AttributeError(VarDict['basis'] +" not found in anndata.obsm")
-        plotattr = sc.pl.tsne
-    elif VarDict['map_attr'].lower() == "pca": 
-        if VarDict['basis']  not in adata.obsm:
-            raise AttributeError(VarDict['basis'] +" not found in anndata.obsm")
-        plotattr = sc.pl.pca
-    elif VarDict['map_attr'].lower() == "scatter" or VarDict['map_attr'].lower() == "scat": 
+    
+    if VarDict['map_attr'].lower() == "scatter" or VarDict['map_attr'].lower() == "scat": 
         if VarDict['x_scat'] is None or VarDict['y_scat'] is None:
             raise AttributeError('When choosing the scatter plot, please make sure the y_scat and x_scat args are defined.')
         scat_plot = "scat"
         plotattr = sc.pl.scatter
-    elif VarDict['map_attr'].lower() == "embedding":
-        scat_plot = "embedding"
+    else:
         if "basis" not in VarDict:
             raise AttributeError("The basis parameter is not found")
         elif VarDict['basis'] not in adata.obsm:
-            raise AttributeError(VarDict['basis'].lower()+" not found in anndata.obsm")
-        plotattr = sc.pl.embedding
-        
-    else: #If the input of map_attr differs from what we have listed above, raise an error.
-        raise ValueError('The plotting attribute '+VarDict['map_attr']+' entered is not whitelisted. The following attributes are available: '+avail_atr+'. e.g. Try Remap(adata,map_attr="umap").')
+            raise AttributeError(str(VarDict['basis'])+" not found in anndata.obsm")
+
+
+        if VarDict['map_attr'].lower() == "umap": 
+            plotattr = sc.pl.umap
+            
+        elif VarDict['map_attr'].lower() == "tsne": 
+            plotattr = sc.pl.tsne
+            
+        elif VarDict['map_attr'].lower() == "pca": 
+            plotattr = sc.pl.pca
+
+        elif VarDict['map_attr'].lower() == "embedding":
+            scat_plot = "embedding"
+            plotattr = sc.pl.embedding
+
+        else: #If the input of map_attr differs from what we have listed above, raise an error.
+            raise ValueError('The attribute '+VarDict['basis']+' entered is not whitelisted. The following attributes are available: '+avail_atr+'. e.g. Remap(adata,map_attr="umap"). If you meant to override this whitelist, please check if you specified Remap(adata,override=True).')
 
 
 
@@ -443,7 +443,7 @@ def prepare(adata,VarDict):
 
         counts = Get_Max_val_from_list_with_commas(adata.obs[VarDict['load']])
 
-    if VarDict['mock'] is None and is_notebook():
+    if VarDict['mock'] is None and VarDict['interactive_backend'] != None:
         matplotlib.use(VarDict['interactive_backend'], force=True) # We have to switch to a different matplotlib backend in order to be able to interact with the plot on Jupyter Notebook.
 
 
@@ -453,7 +453,6 @@ def AddTextBox(txt,y,ret):
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.8)
     return(ret.text(0.05, y, txt, transform=ret.transAxes, fontsize=14,
                   verticalalignment='top', bbox=props))
-
 def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,MainmlpBackend,unsError,**kwargs_copy):
     if VarDict['replot_lines'] != None:
         try:
@@ -479,10 +478,12 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
         
     except: #In the case that we cannot make the interactive plot, we need to switch back to the original backend in the case that we use Jupyter Notebook and switched to an interactive backend.
         plt.close()
-        if is_notebook():
+        if VarDict['interactive_backend'] != None:
             matplotlib.use(MainmlpBackend, force=True)
-            print("happens")
 
+            """
+            #I believe this part has become redundant after bug fix, but have to check on multiple devices before definetively removing this.
+            
             if scat_plot == "scat":
                 returned = plotattr(adata,VarDict['x_scat'],VarDict['y_scat'], **kwargs_copy) 
             elif scat_plot == "embedding":
@@ -490,7 +491,7 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
 
             else:
                 returned = plotattr(adata, **kwargs_copy) # Here we plot. plotattr is e.g. sc.pl.umap. As we switched the back-end, this plot will be interactive.
-            """
+            
             This part needs some explaining. When using try and scanpy returns an error, e.g. when a parameter is wrong, the interactive backend for some reason does not stop correctly, which could cause a system crash, similar to what the on_close() function is addressing.
             Since it is nearly impossible in Python to run an exception without try (sys.excepthook doesnt work either here), the same work around as with atexit call on_close() will not be possible here.
             The only thing that I figured out works in this case, is to force an error in the exception, however not with raise. 
@@ -498,9 +499,9 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
             """
         
         
-        else:    
+        #else:    
 
-            raise AttributeError("Unexpected error:", sys.exc_info()[0])
+        raise AttributeError("Unexpected error:", sys.exc_info()[1])
         
         
     try:
@@ -538,7 +539,7 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
             for iteration,ShapeKey in enumerate(adata.uns[VarDict['replot_lines']]):
                 getXY(adata.uns[VarDict['replot_lines']][ShapeKey],scat_plot,returned,iteration,VarDict['line_palette'],VarDict['linestyle'],None)
 
-         
+        plot_is_open = True 
         while True:
             
             
@@ -552,7 +553,10 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
             else:
                 mock_inp = None
             counts = counts + 1
-            outp = draw_line(100000,scat_plot,returned,mock_inp,lc,VarDict['line_palette'],VarDict['linestyle'],VarDict['printcords']) 
+            outp,plot_is_open = draw_line(100000,scat_plot,returned,mock_inp,lc,VarDict['line_palette'],VarDict['linestyle'],VarDict['printcords'],VarDict["timeout"],plot_is_open) 
+
+            if plot_is_open == False:
+                break
             if outp != None:
                 ShapeDict[str(counts)] = outp
             else:
@@ -562,17 +566,17 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
         plt.close()
     except: #In the case that we cannot make the interactive plot, we need to switch back to the original backend in the case that we use Jupyter Notebook and switched to an interactive backend.
         plt.close()
-        if is_notebook():
+        if VarDict['interactive_backend'] != None:
             matplotlib.use(MainmlpBackend, force=True)
-            print("happens")
+
 
 
         
     
-        raise AttributeError("Unexpected error:", sys.exc_info()[0])
+        raise AttributeError("Unexpected error:", sys.exc_info()[1])
         
     tryPass(plt.close()) # We do not want to continue with the plot we drawn. We will draw a new one later.
-    if is_notebook():
+    if VarDict['interactive_backend'] != None:
         matplotlib.use(MainmlpBackend, force=True)
 
         
@@ -708,10 +712,11 @@ def Store_obj(VarDict,adata,ShapeDict):
         del adata.uns[VarDict['load']+"_colors"]   
 
 
-def ReturnToNormalBackend(mlpb):
-    if is_notebook():
+def ReturnToNormalBackend(mlpb,VarDict):
+    if VarDict['interactive_backend'] != None:
         matplotlib.use(mlpb, force=True)
-        print("happens")
+
+
 
     try:
         plt.close()
@@ -719,7 +724,8 @@ def ReturnToNormalBackend(mlpb):
         pass
     
 def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is where it all starts. 
-    
+       
+    #plt.rcParams["keymap.quit"] = [""]
     MainmlpBackend = matplotlib.get_backend() # Get the current backend. This should happen before the prepare() function is executed. 
     
     
@@ -750,7 +756,7 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
             raise AttributeError(unsError)
 
     else:
-        atexit.register(ReturnToNormalBackend,MainmlpBackend) #In case the user closes the plot window during the other backend, this function would revert to the normal backend on exit
+        atexit.register(ReturnToNormalBackend,mlpb=MainmlpBackend,VarDict=VarDict) #In case the user closes the plot window during the other backend, this function would revert to the normal backend on exit
         counts = prepare(adata,VarDict) # Switch matplotlib backend to interactive plot.
         #Now it is time to run the interactive plot and select the cells.
         ShapeDict = interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,MainmlpBackend,unsError,**kwargs_copy)
@@ -817,4 +823,3 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
     else:
 
         return(returnVar)
-

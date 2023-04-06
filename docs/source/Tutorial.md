@@ -321,7 +321,7 @@ scS.annotate.gen_dict(adata.obs['REMAP_3'])
 
 
 
-    {'3': '3', '2': '2', '1': '1', 'Other': 'Other'}
+    {'1': '1', '3': '3', '2': '2', 'Other': 'Other'}
 
 
 
