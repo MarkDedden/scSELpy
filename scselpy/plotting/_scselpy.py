@@ -205,7 +205,7 @@ def InitiateParamDict():
     
     ParamDict['save'] = [None,[type(None),str],"Saves figure in provided path+filename. If only a filename is provided, will save in \"figures/\"+filename. Does not work the same as in scanpy. <code>scanpy.set_figure_params</code> should still work."]
     #ParamDict['interactive_backend'] = ["Qt5agg" if "win" in sys.platform else "TkAgg",[str],"For the drawing of polygons, an interactive backend will be used. If a default back-end does not work propperly on your computer, you can change it. More information at https://matplotlib.org/stable/users/explain/backends.html"] 
-    ParamDict['interactive_backend'] = [None if is_notebook() == False else "TkAgg" if "linux" in sys.platform else "Qt5Agg" if "win" in sys.platform else "Qt5Agg" ,[str,type(None)],"Default: None if not running on Jupyter Notebook (In this case, backend will only switch if you specify this parameter). If running on Jupyter: Default on Linux: TkAgg. Default on Windows and OSX: Qt5Agg. Default on rest: Qt5Agg. If running scSELpy on Jupyter Notebook, the drawing of polygons requires the use of an interactive backend. If the default back-end does not work propperly on your computer, you can change it. More information at https://matplotlib.org/stable/users/explain/backends.html"]
+    ParamDict['interactive_backend'] = [None if is_notebook() == False else "Qt5Agg" ,[str,type(None)],"Default: None if not running on Jupyter Notebook (In this case, backend will only switch if you specify this parameter). If running on Jupyter: Qt5Agg. If running scSELpy on Jupyter Notebook, the drawing of polygons requires the use of an interactive backend. If the default back-end does not work propperly on your computer, you can change it. More information at https://matplotlib.org/stable/users/explain/backends.html"]
     ParamDict['timeout'] = [60,[float,int],"Amount of seconds until the drawing of the polygons will automatically stop."]
     ParamDict['helpbox'] = [False,[bool],"Before drawing, shows some text that gives instructions for drawing polygons"]
     
@@ -481,25 +481,8 @@ def interactive_plot_selecting_cells(adata,VarDict,scat_plot,plotattr,counts,Mai
         if VarDict['interactive_backend'] != None:
             matplotlib.use(MainmlpBackend, force=True)
 
-            """
-            #I believe this part has become redundant after bug fix, but have to check on multiple devices before definetively removing this.
-            
-            if scat_plot == "scat":
-                returned = plotattr(adata,VarDict['x_scat'],VarDict['y_scat'], **kwargs_copy) 
-            elif scat_plot == "embedding":
-                returned = plotattr(adata,basis=VarDict['basis'], **kwargs_copy) #The "show" parameter will always be false, even if user puts it on True.
-
-            else:
-                returned = plotattr(adata, **kwargs_copy) # Here we plot. plotattr is e.g. sc.pl.umap. As we switched the back-end, this plot will be interactive.
-            
-            This part needs some explaining. When using try and scanpy returns an error, e.g. when a parameter is wrong, the interactive backend for some reason does not stop correctly, which could cause a system crash, similar to what the on_close() function is addressing.
-            Since it is nearly impossible in Python to run an exception without try (sys.excepthook doesnt work either here), the same work around as with atexit call on_close() will not be possible here.
-            The only thing that I figured out works in this case, is to force an error in the exception, however not with raise. 
-            Therefore, I could either run an non-existing command or alternatively, rerun the code that caused the error. For some reason, doing so avoids a crash.
-            """
         
-        
-        #else:    
+      
 
         raise AttributeError("Unexpected error:", sys.exc_info()[1])
         
