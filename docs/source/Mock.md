@@ -164,7 +164,7 @@ scS.pl.tsne(adata,mock=Other_dict,line_labels=["1","2","3"])
     
 
 
-If you first want to select cells by drawing polygons and save these coordinates in mock dicts, there are two ways to obtain them. 1) Use scSELpy.pl.embedding(adata,printcords=True) 2) get them from adata.uns['REMAP_1'].
+If you first want to select cells by drawing polygons and save these coordinates in mock dicts, there are two ways to obtain them. 1) Use scselpy.pl.embedding(adata,printcords=True) 2) get them from adata.uns['REMAP_1'].
 
 
 ```python

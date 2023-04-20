@@ -67,7 +67,7 @@ scS.pl.umap(adata,color="CellType1")#,helpbox=True
 
 ## Ploting selected cells
 
-The selected cells are annotated and stored as ```Anndata observations```. By default, it is stored as REMAP_1. The second time your run scSELpy, it will be stored as REMAP_2 and so on. If scSELpy.settings.verbosity is atleast 2 (2 by default), the stored observation name will be output after it is added by scSELpy.
+The selected cells are annotated and stored as ```Anndata observations```. By default, it is stored as REMAP_1. The second time your run scSELpy, it will be stored as REMAP_2 and so on. If scselpy.settings.verbosity is atleast 2 (2 by default), the stored observation name will be output after it is added by scSELpy.
 
 
 ```python
@@ -321,7 +321,7 @@ scS.annotate.gen_dict(adata.obs['REMAP_3'])
 
 
 
-    {'1': '1', '3': '3', '2': '2', 'Other': 'Other'}
+    {'3': '3', 'Other': 'Other', '1': '1', '2': '2'}
 
 
 

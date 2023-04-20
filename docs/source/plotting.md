@@ -12,23 +12,23 @@ scSELpy can be employed to manual select and annotate cells on scanpy generated 
 If none of the above mentioned embeddings work, scSELpy also supports scanpy's ```embedding``` plotting parameter.  
 
 ## UMAP
-scSELpy.pl.umap(adata,*kwargs)
+scselpy.pl.umap(adata,*kwargs)
 
 ## TSNE
-scSELpy.pl.tsne(adata,*kwargs)
+scselpy.pl.tsne(adata,*kwargs)
 
 ## PCA
-scSELpy.pl.pca(adata,*kwargs)
+scselpy.pl.pca(adata,*kwargs)
 
 ## Scatter plot
-scSELpy.pl.scatter(adata,x,y,*kwargs)
+scselpy.pl.scatter(adata,x,y,*kwargs)
 <br>For example:<br>
-```scSELpy.pl.scatter(adata,'n_genes','n_counts',color="ATCB")``` 
+```scselpy.pl.scatter(adata,'n_genes','n_counts',color="ATCB")``` 
 
 ## Embedding
-scSELpy.pl.embedding(adata,basis=arg,*kwargs)
+scselpy.pl.embedding(adata,basis=arg,*kwargs)
 <br>For example, in order to run umap:<br>
-```scSELpy.pl.embedding(adata,basis="X_umap",color="ATCB")``` 
+```scselpy.pl.embedding(adata,basis="X_umap",color="ATCB")``` 
 
 ## Parameters
 ```{include} generated_markdown/Parameters.md
@@ -37,7 +37,7 @@ scSELpy.pl.embedding(adata,basis=arg,*kwargs)
 
 ## Removed or changed parameters
 
-In general, all scanpy plotting parameters can be passed to the scSELpy.pl.* functions, with the exception of:
+In general, all scanpy plotting parameters can be passed to the scselpy.pl.* functions, with the exception of:
 
 - ```Layers``` or ```Layer``` 
 
@@ -53,7 +53,7 @@ The following parameters have been changed:
 In case the user would like to use scSELpy with other commands, it is technically possible by calling scSELpy's Remap() function directly and set its internal parameter ```override``` to True:
 
 ```
-scSELpy.pl._scSELpy.Remap(adata,override=True,scat_plot=False,basis=<input from obsm>,plotattr=<function>,remove_show_override=True)
+scselpy.pl._scselpy.Remap(adata,override=True,scat_plot=False,basis=<input from obsm>,plotattr=<function>,remove_show_override=True)
 ```
 <br>
 
@@ -65,12 +65,12 @@ With the following command we run a scatter plot this way:
 
 
 ```
-scS.pl._scSELpy.Remap(adata,x_scat="n_counts",y_scat="n_genes",override=True,scat_plot="scat",plotattr=sc.pl.scatter,remove_show_override=False)
+scselpy.pl._scselpy.Remap(adata,x_scat="n_counts",y_scat="n_genes",override=True,scat_plot="scat",plotattr=sc.pl.scatter,remove_show_override=False)
 ```
 
 To run this on e.g. Scanpy's draw_graph:<br>
 ```
-scSELpy.pl._scSELpy.Remap(adata,override=True,scat_plot=False,basis="X_draw_graph_fa",plotattr=sc.pl.draw_graph,remove_show_override=False)
+scselpy.pl._scselpy.Remap(adata,override=True,scat_plot=False,basis="X_draw_graph_fa",plotattr=sc.pl.draw_graph,remove_show_override=False)
 ```
 
 To try this on an external Scanpy-based package, such as [Scirpy]:<br>
@@ -81,7 +81,7 @@ dfT = df.T
 First = "CD8"
 Second = "CD4"
 adata.obsm['X_Repertoire'] = np.array([[dfT[First][ID],dfT[Second][ID]] if np.isnan(float(ID)) == False else [0.0,0.0] for ID in list(adata.obs["clone_id"])])
-scS.pl._scSELpy.Remap(adata,override=True,remove_show_override=True,scat_plot=False,basis="X_Repertoire",plotattr=ir.pl.repertoire_overlap,...)
+scselpy.pl._scselpy.Remap(adata,override=True,remove_show_override=True,scat_plot=False,basis="X_Repertoire",plotattr=ir.pl.repertoire_overlap,...)
 ```
 <br><br>
 This function only works on scanpy-based packages and if the Anndata object is the only non-keyword argument.

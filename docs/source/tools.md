@@ -10,7 +10,7 @@
 Calculate basic cell statistics of selected regions.
 
 ## Percentage cells in each region
-```scSELpy.tl.cells_per_cluster(adata,obs_inp)```
+```scselpy.tl.cells_per_cluster(adata,obs_inp)```
 Calculates the percentage of cells in each selected region. 
 
 
@@ -22,7 +22,7 @@ Calculates the percentage of cells in each selected region.
 
 
 ## Percentage cells expressing a certain gene
-```scSELpy.tl.cells_expressing_gene(adata,obs_inp,gene,which_var="var_names")```
+```scselpy.tl.cells_expressing_gene(adata,obs_inp,gene,which_var="var_names")```
 Calculates the percentage of cells expressing a certain gene.
 
 
@@ -38,7 +38,7 @@ Calculates the percentage of cells expressing a certain gene.
 
 
 ## Calculating Transcripts per Million
-```scSELpy.tl.calculate_TPM(adata,obs_inp,gene,which_var="var_names",use_raw=True,layer_key=None)```
+```scselpy.tl.calculate_TPM(adata,obs_inp,gene,which_var="var_names",use_raw=True,layer_key=None)```
 Calculates the transcripts per million of a certain gene within a region of cells.
 
 <div style="background-color:rgba(0, 0, 0, 0.0470588); text-align:left; vertical-align: middle; padding:8px 0;"><b>&nbsp;adata: <code>AnnData</code></b> </div>  &nbsp;&nbsp;&nbsp; Annotated data matrix. <br><br>  
