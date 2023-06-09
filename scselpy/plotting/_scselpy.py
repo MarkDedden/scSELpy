@@ -718,7 +718,7 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
     if remove_show_override == True:
         del kwargs_copy["show"]
     
-    #adata = CheckRaw(anndata,VarDict,**kwargs)
+
     VarDict = checks(adata,VarDict,**kwargs) # Perform some checks
     if override == False:
         scat_plot,plotattr = set_map_attr(adata,VarDict,**kwargs) #umap, tsne, pca or scatter.
@@ -730,7 +730,18 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
         
     unsError = "The replot_lines parameter should only be invoked with the name of an anndata.uns. e.g. in case of adata.uns[\"REMAP_1\"], run scSELpy.pl.umap(adata,replot_lines=\"REMAP_1\",kwargs**). Current input: "+str(VarDict['replot_lines']) 
 
-                
+        
+    #PRE-plotting before backend switch. To make sure all parameters are working.
+    if scat_plot == "scat":
+        returned = plotattr(adata,VarDict['x_scat'],VarDict['y_scat'], **kwargs_copy) 
+    elif scat_plot == "embedding":
+        returned = plotattr(adata,basis=VarDict['basis'], **kwargs_copy) #The "show" parameter will always be false, even if user puts it on True.
+
+    else:
+        returned = plotattr(adata, **kwargs_copy) # Here we plot. plotattr is e.g. sc.pl.umap. As we switched the back-end, this plot will be interactive.
+
+
+        
     if VarDict['replot_lines'] != None and VarDict['load'] == None: #In this case, we can skip the interactive part. Just replotting the already drawn.
         try:
             ShapeDict = adata.uns[VarDict['replot_lines']].copy()
@@ -752,8 +763,8 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
     else:
         returnVar = plotattr(adata, **kwargs_copy) 
     
-    Backup_legend = plt.gca().legend_
 
+    
     if VarDict["use_log_scale"] == True:
         log_scale(VarDict,returnVar)
     
@@ -772,16 +783,20 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
             line_labels = VarDict['line_labels'][:len(ShapeDict)]
         else:
             line_labels = VarDict['line_labels']
-       
+
+        #handles.append(custom_lines)
+        #labels.append(line_labels)
         
-        plt.legend(custom_lines,line_labels,loc=VarDict['line_loc'],bbox_to_anchor=VarDict['line_bbox_to_anchor'],handlelength=VarDict['line_handlelength']) # Plotting the line legend. In getXY(), the labels are added.
-     
-    if Backup_legend != None:
         if type(returnVar) == list: #Multiple variables have been passed to the scanpy color argument.
-            returnVar[-1].add_artist(Backup_legend) #scSELpy is not made to support multiple plots in one go, so we just add the legend to the last plot.
-        else:
-            returnVar.add_artist(Backup_legend)
+            ax2 = returnVar[-1].twinx()
+            #scSELpy is not made to support multiple plots in one go, so we just add the legend to the last plot.
+        else:    
+            ax2 = returnVar.twinx() # We create a copy of the axes to add another legend. Using add_artist for adding legend is buggy.
+        ax2.legend(custom_lines,line_labels,loc=VarDict['line_loc'],bbox_to_anchor=VarDict['line_bbox_to_anchor'],handlelength=VarDict['line_handlelength']) # Plotting the line legend. In getXY(), the labels are added.
+        ax2.axis('off')
     
+
+        
     #--------- SAVING -----------------
     if VarDict['save'] != None: # We did not want the plots being saved while drawing. Now we can save it manually with the plt.savefig()
         Save(VarDict,scat_plot,returnVar) #Should automatically take the settings from scanpy.set_figure_params, as that function updated matplotlib.rcParams.

@@ -121,7 +121,13 @@ scS.pl.umap(adata_unselected,color="CellType1",replot_lines="REMAP_1")
     
 
 
-The coordinates of the polygons are stored in ```Anndata Unstructured annotation```. By running adata.uns, we can see the coordinates of the polygon. Alternatively, we can run scSELpy.pl.umap(adata,printcords=True), to print the coordinates of the polygon. These coordinates can be added to the mock parameter, to automatically redraw the polygons. More on the mock parameter in the ```Mock toturial```.
+
+    
+![png](Tutorial_files/Tutorial_16_1.png)
+    
+
+
+The coordinates of the polygons are stored in ```Anndata Unstructured annotation```. By running adata.uns, we can see the coordinates of the polygon. Alternatively, we can run scselpy.pl.umap(adata,printcords=True), to print the coordinates of the polygon. These coordinates can be added to the mock parameter, to automatically redraw the polygons. More on the mock parameter in the ```Mock toturial```.
 
 
 ```python
@@ -234,8 +240,42 @@ scS.pl.umap(adata,color=["CellType2","CellType1"],replot_lines="REMAP_2",line_pa
 ```
 
 
+    ---------------------------------------------------------------------------
+
+    AttributeError                            Traceback (most recent call last)
+
+    <ipython-input-15-bb0d58decb6b> in <module>
+    ----> 1 scS.pl.umap(adata,color=["CellType2","CellType1"],replot_lines="REMAP_2",line_palette=palettes.default_102[5:8],line_labels=["A","B","C"])
     
-![png](Tutorial_files/Tutorial_34_0.png)
+
+    ~/anaconda3/lib/python3.8/site-packages/scselpy/plotting/__init__.py in umap(adata, **args)
+          3 
+          4 def umap(adata,**args):
+    ----> 5     ReturnVar = Remap(adata,remove_show_override=False,map_attr="umap",**args)
+          6 
+          7     if ReturnVar is None:
+
+
+    ~/anaconda3/lib/python3.8/site-packages/scselpy/plotting/_scselpy.py in Remap(adata, override, remove_show_override, **kwargs)
+        789         #labels.append(line_labels)
+        790 
+    --> 791         ax2 = returnVar.twinx()
+        792 
+        793         ax2.legend(custom_lines,line_labels,loc=VarDict['line_loc'],bbox_to_anchor=VarDict['line_bbox_to_anchor'],handlelength=VarDict['line_handlelength']) # Plotting the line legend. In getXY(), the labels are added.
+
+
+    AttributeError: 'list' object has no attribute 'twinx'
+
+
+
+    
+![png](Tutorial_files/Tutorial_34_1.png)
+    
+
+
+
+    
+![png](Tutorial_files/Tutorial_34_2.png)
     
 
 
@@ -246,24 +286,12 @@ With line_palette, we can specify the colors of the lines
 scS.pl.umap(adata,line_palette=palettes.default_102) 
 ```
 
-
-    
-![png](Tutorial_files/Tutorial_36_0.png)
-    
-
-
 We can also add a legend
 
 
 ```python
 scS.pl.umap(adata,replot_lines="REMAP_3",line_palette=palettes.default_102[5:8],line_labels=["A","B","C"])
 ```
-
-
-    
-![png](Tutorial_files/Tutorial_38_0.png)
-    
-
 
 Or change the position of the legend
 
@@ -272,12 +300,6 @@ Or change the position of the legend
 scS.pl.umap(adata,replot_lines="REMAP_3",line_palette=palettes.default_102[12:15],line_labels=["A","B","C"],line_loc='upper right',line_bbox_to_anchor=(-0.05,1))
 ```
 
-
-    
-![png](Tutorial_files/Tutorial_40_0.png)
-    
-
-
 Or not show all labels
 
 
@@ -285,12 +307,6 @@ Or not show all labels
 scS.pl.umap(adata,replot_lines="REMAP_3",line_palette=palettes.default_102[12:14],line_labels=["A","B","_nolegend_"],line_loc='upper right',line_bbox_to_anchor=(-0.05,1))
 
 ```
-
-
-    
-![png](Tutorial_files/Tutorial_42_0.png)
-    
-
 
 
 ```python
@@ -304,12 +320,6 @@ scS.pl.umap(adata,replot_lines="REMAP_3",line_palette=palettes.default_102[12:14
 sc.pl.umap(adata,color="REMAP_3")
 ```
 
-
-    
-![png](Tutorial_files/Tutorial_45_0.png)
-    
-
-
 We are going to rename the annotations. Number 1 and 2 will be part of "gene A" and number 3 will be "gene B"
 Lets generate a dictionary in which we can assign the names we want to replace for REMAP_3.
 
@@ -317,13 +327,6 @@ Lets generate a dictionary in which we can assign the names we want to replace f
 ```python
 scS.annotate.gen_dict(adata.obs['REMAP_3'])
 ```
-
-
-
-
-    {'3': '3', 'Other': 'Other', '1': '1', '2': '2'}
-
-
 
 Lets copy the dict above and rename:
 
@@ -344,12 +347,6 @@ adata.obs['REMAP_3_renamed'] = scS.annotate.rename(adata.obs['REMAP_3'],input_di
 ```python
 sc.pl.umap(adata,color="REMAP_3_renamed")
 ```
-
-
-    
-![png](Tutorial_files/Tutorial_51_0.png)
-    
-
 
 Now the annotations are renamed. 
 If we would load REMAP_3_renamed and plot more lines, the reannotated names would not change. 
@@ -373,26 +370,12 @@ scSELpy has a function to:
 scS.tl.cells_per_cluster(adata,"REMAP_3_renamed")
 ```
 
-
-
-
-    {'Other': 57.17, 'Gene A': 25.5, 'Gene B': 11.67, 'Gene A,Gene B': 5.67}
-
-
-
 2) to calculate the % of cells expressing a certain gene in each selection 
 
 
 ```python
 scS.tl.cells_expressing_gene(adata,"REMAP_3_renamed","ENSG00000075624")
 ```
-
-
-
-
-    {'Gene A': 49.02, 'Gene A,Gene B': 50.0, 'Gene B': 58.57, 'Other': 46.36}
-
-
 
 In the case that the gene name is not stored in anndata.var_names, but e.g. in ``anndata.var["Genes"]``, we can run: 
 
@@ -401,26 +384,12 @@ In the case that the gene name is not stored in anndata.var_names, but e.g. in `
 scS.tl.cells_expressing_gene(adata,"REMAP_3_renamed","ACTB",which_var="Genes")
 ```
 
-
-
-
-    {'Gene A': 49.02, 'Gene A,Gene B': 50.0, 'Gene B': 58.57, 'Other': 46.36}
-
-
-
 3) Calculate the Transcripts per Million:
 
 
 ```python
 scS.tl.calculate_TPM(adata,"REMAP_3_renamed","ACTB",which_var="Genes",use_raw=False)
 ```
-
-
-
-
-    {'Gene A': 7.33, 'Gene A,Gene B': 6.2, 'Gene B': 11.82, 'Other': 6.87}
-
-
 
 
 ```python
@@ -438,30 +407,12 @@ scS.pl.umap(adata,load="Own_name",printcords=True)
 sc.pl.umap(adata,color="Own_name")
 ```
 
-
-    
-![png](Tutorial_files/Tutorial_66_0.png)
-    
-
-
-
-    
-![png](Tutorial_files/Tutorial_66_1.png)
-    
-
-
 If you want to show a subcluster but not move the entire plot, you can draw a line around it and change the line_palette parameter to a color with a transparancy setting of 0, e.g. (0,0,0,0). 
 
 
 ```python
 scS.pl.umap(adata,color='CellType1')
 ```
-
-
-    
-![png](Tutorial_files/Tutorial_68_0.png)
-    
-
 
 
 ```python
@@ -474,62 +425,58 @@ for ct in sorted(set(adata.obs['CellType1'])):
 
 
 
-    
-![png](Tutorial_files/Tutorial_69_1.png)
-    
+    ---------------------------------------------------------------------------
+
+    KeyError                                  Traceback (most recent call last)
+
+    ~/anaconda3/lib/python3.8/site-packages/scselpy/plotting/_scselpy.py in Remap(adata, override, remove_show_override, **kwargs)
+        746         try:
+    --> 747             ShapeDict = adata.uns[VarDict['replot_lines']].copy()
+        748         except:
 
 
-    1
+    ~/anaconda3/lib/python3.8/site-packages/anndata/compat/_overloaded_dict.py in __getitem__(self, key)
+         99         else:
+    --> 100             return self.data[key]
+        101 
 
 
-
-    
-![png](Tutorial_files/Tutorial_69_3.png)
-    
-
-
-    2
-
-
-
-    
-![png](Tutorial_files/Tutorial_69_5.png)
-    
-
-
-    3
-
-
+    KeyError: 'REMAP_4'
 
     
-![png](Tutorial_files/Tutorial_69_7.png)
+    During handling of the above exception, another exception occurred:
+
+
+    AttributeError                            Traceback (most recent call last)
+
+    <ipython-input-16-7dbe2dfa2b35> in <module>
+          1 for ct in sorted(set(adata.obs['CellType1'])):
+          2     print(ct)
+    ----> 3     scS.pl.umap(adata[adata.obs['CellType1'] == ct],color="CellType1",replot_lines="REMAP_4",line_palette=[(0,0,0,0)],size=200)
     
 
-
-    4
-
-
-
-    
-![png](Tutorial_files/Tutorial_69_9.png)
-    
+    ~/anaconda3/lib/python3.8/site-packages/scselpy/plotting/__init__.py in umap(adata, **args)
+          3 
+          4 def umap(adata,**args):
+    ----> 5     ReturnVar = Remap(adata,remove_show_override=False,map_attr="umap",**args)
+          6 
+          7     if ReturnVar is None:
 
 
-    5
+    ~/anaconda3/lib/python3.8/site-packages/scselpy/plotting/_scselpy.py in Remap(adata, override, remove_show_override, **kwargs)
+        748         except:
+        749 
+    --> 750             raise AttributeError(unsError)
+        751 
+        752     else:
 
 
-
-    
-![png](Tutorial_files/Tutorial_69_11.png)
-    
-
-
-    6
+    AttributeError: The replot_lines parameter should only be invoked with the name of an anndata.uns. e.g. in case of adata.uns["REMAP_1"], run scSELpy.pl.umap(adata,replot_lines="REMAP_1",kwargs**). Current input: REMAP_4
 
 
 
     
-![png](Tutorial_files/Tutorial_69_13.png)
+![png](Tutorial_files/Tutorial_69_2.png)
     
 
 
