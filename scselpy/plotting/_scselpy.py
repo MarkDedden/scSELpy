@@ -741,6 +741,12 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
         returned = plotattr(adata, **kwargs_copy) # Here we plot. plotattr is e.g. sc.pl.umap. As we switched the back-end, this plot will be interactive.
 
 
+    try:
+        plt.close()
+    except:
+        pass
+
+
         
     if VarDict['replot_lines'] != None and VarDict['load'] == None: #In this case, we can skip the interactive part. Just replotting the already drawn.
         try:
