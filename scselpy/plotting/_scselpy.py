@@ -732,19 +732,21 @@ def Remap(adata,override=False,remove_show_override=True,**kwargs): # Here is wh
 
         
     #PRE-plotting before backend switch. To make sure all parameters are working.
-    if scat_plot == "scat":
-        returned = plotattr(adata,VarDict['x_scat'],VarDict['y_scat'], **kwargs_copy) 
-    elif scat_plot == "embedding":
-        returned = plotattr(adata,basis=VarDict['basis'], **kwargs_copy) #The "show" parameter will always be false, even if user puts it on True.
-
-    else:
-        returned = plotattr(adata, **kwargs_copy) # Here we plot. plotattr is e.g. sc.pl.umap. As we switched the back-end, this plot will be interactive.
-
-
-    try:
-        plt.close()
-    except:
-        pass
+    if VarDict["mock"] == None:
+    
+        if scat_plot == "scat":
+            returned = plotattr(adata,VarDict['x_scat'],VarDict['y_scat'], **kwargs_copy) 
+        elif scat_plot == "embedding":
+            returned = plotattr(adata,basis=VarDict['basis'], **kwargs_copy) #The "show" parameter will always be false, even if user puts it on True.
+    
+        else:
+            returned = plotattr(adata, **kwargs_copy) # Here we plot. plotattr is e.g. sc.pl.umap. As we switched the back-end, this plot will be interactive.
+    
+    
+        try:
+            plt.close()
+        except:
+            pass
 
 
         
